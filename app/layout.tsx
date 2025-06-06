@@ -8,8 +8,11 @@ import { Inter } from 'next/font/google'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Fragments by E2B',
+  title: 'LemonFarm - Alpha',
   description: "Open-source version of Anthropic's Artifacts",
+  icons: {
+    icon: '/logos/favicon.ico',
+  },
 }
 
 export default function RootLayout({

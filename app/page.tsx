@@ -26,12 +26,12 @@ export default function Home() {
   const [chatInput, setChatInput] = useLocalStorage('chat', '')
   const [files, setFiles] = useState<File[]>([])
   const [selectedTemplate, setSelectedTemplate] = useState<'auto' | TemplateId>(
-    'auto',
+    'nextjs-developer',
   )
   const [languageModel, setLanguageModel] = useLocalStorage<LLMModelConfig>(
     'languageModel',
     {
-      model: 'claude-3-5-sonnet-latest',
+      model: 'claude-sonnet-4-20250514',
     },
   )
 
@@ -49,15 +49,14 @@ export default function Home() {
   const { session, userTeam } = useAuth(setAuthDialog, setAuthView)
 
   const filteredModels = modelsList.models.filter((model) => {
-    if (process.env.NEXT_PUBLIC_HIDE_LOCAL_MODELS) {
-      return model.providerId !== 'ollama'
-    }
-    return true
+    // Show only Google and OpenAI models
+    const allowedProviders = ['openai', 'google', 'anthropic']
+    return allowedProviders.includes(model.providerId)
   })
 
   const currentModel = filteredModels.find(
     (model) => model.id === languageModel.model,
-  )
+  ) || filteredModels[0]
   const currentTemplate =
     selectedTemplate === 'auto'
       ? templates
@@ -135,6 +134,13 @@ export default function Home() {
   useEffect(() => {
     if (error) stop()
   }, [error])
+
+  // Update languageModel if current model is not available in filtered list
+  useEffect(() => {
+    if (currentModel && currentModel.id !== languageModel.model) {
+      setLanguageModel(prev => ({ ...prev, model: currentModel.id }))
+    }
+  }, [currentModel?.id, languageModel.model, setLanguageModel])
 
   function setMessage(message: Partial<Message>, index?: number) {
     setMessages((previousMessages) => {

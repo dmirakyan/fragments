@@ -66,10 +66,10 @@ export async function publish(
 
     let baseUrl: string
     
-    if (process.env.NODE_ENV === 'development') {
-      baseUrl = 'http://localhost:3000'
-    } else if (process.env.NEXT_PUBLIC_SITE_URL) {
+    if (process.env.NEXT_PUBLIC_SITE_URL) {
       baseUrl = `https://${process.env.NEXT_PUBLIC_SITE_URL}`
+    } else if (process.env.NODE_ENV === 'development') {
+      baseUrl = 'http://localhost:3000'
     } else {
       baseUrl = 'https://www.lemonfarm.com'
     }

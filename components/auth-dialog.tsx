@@ -21,6 +21,9 @@ export function AuthDialog({
   supabase: SupabaseClient
   view: ViewType
 }) {
+  const redirectUrl = `https://${process.env.NEXT_PUBLIC_SITE_URL}`
+  console.log('Auth redirect URL:', redirectUrl, 'ENV VAR:', process.env.NEXT_PUBLIC_SITE_URL)
+  
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
@@ -41,7 +44,7 @@ export function AuthDialog({
               view={view}
               providers={['google']}
               socialLayout="horizontal"
-              redirectTo={`https://${process.env.NEXT_PUBLIC_SITE_URL}`}
+              redirectTo={redirectUrl}
               onSignUpValidate={validateEmail}
               metadata={{
                 is_fragments_user: true,

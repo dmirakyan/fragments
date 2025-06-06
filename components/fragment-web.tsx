@@ -27,39 +27,6 @@ export function FragmentWeb({ result }: { result: ExecutionResultWeb }) {
         loading="lazy"
         src={result.url}
       />
-      <div className="p-2 border-t">
-        <div className="flex items-center bg-muted dark:bg-white/10 rounded-2xl">
-          <TooltipProvider>
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="link"
-                  className="text-muted-foreground"
-                  onClick={refreshIframe}
-                >
-                  <RotateCw className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Refresh</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <span className="text-muted-foreground text-xs flex-1 text-ellipsis overflow-hidden whitespace-nowrap">
-            {result.url}
-          </span>
-          <TooltipProvider>
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <CopyButton
-                  variant="link"
-                  content={result.url}
-                  className="text-muted-foreground"
-                />
-              </TooltipTrigger>
-              <TooltipContent>Copy URL</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      </div>
     </div>
   )
 }

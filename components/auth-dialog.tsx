@@ -41,6 +41,7 @@ export function AuthDialog({
               view={view}
               providers={['google']}
               socialLayout="horizontal"
+              redirectTo={typeof window !== 'undefined' ? window.location.origin : undefined}
               onSignUpValidate={validateEmail}
               metadata={{
                 is_fragments_user: true,

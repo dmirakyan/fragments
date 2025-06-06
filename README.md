@@ -89,8 +89,8 @@ XAI_API_KEY=
 
 ### Optional env vars
 
-# Domain of the site
-NEXT_PUBLIC_SITE_URL=
+# Domain of the site (for sharing links)
+NEXT_PUBLIC_SITE_URL=lemonfarmlabs.com
 
 # Rate limit
 RATE_LIMIT_MAX_REQUESTS=
@@ -104,9 +104,8 @@ KV_REST_API_TOKEN=
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
 
-# PostHog (analytics)
-NEXT_PUBLIC_POSTHOG_KEY=
-NEXT_PUBLIC_POSTHOG_HOST=
+# Plausible (analytics)
+# Analytics are configured directly in the layout.tsx file
 
 ### Disabling functionality (when uncommented)
 

@@ -1,0 +1,85 @@
+MVP: Stable App URLs with Required Auth - Implementation Checklist
+===============================================================
+
+## Goal
+Fix re-publishing to update same app instead of creating new URLs. **Require authentication for all users.**
+
+## Core Solution
+Use conversation ID from database as app ID for stable URLs. All users must be authenticated.
+
+## What's Already Done ✅
+- Supabase client setup
+- Authentication system (useAuth hook, AuthDialog)  
+- User session management
+- Sign in/up components
+- Database tables created ✅
+- TypeScript types created ✅  
+- useConversation hook created ✅
+
+## Implementation Checklist
+==========================
+
+### 1. Database Tables Setup ✅ DONE
+- [x] Create conversations table in Supabase SQL editor
+- [x] Test database connection and RLS policies
+
+### 2. TypeScript Types ✅ DONE  
+- [x] Create conversation and message types
+- [x] Add conversation interfaces
+
+### 3. Conversation Hook ✅ DONE
+- [x] Create useConversation hook with database integration
+- [x] Auto-create conversation for authenticated users  
+- [x] Auto-save conversation state to database
+
+### 4. Update Main Page - Require Auth ✅ DONE
+- [x] Show auth dialog immediately if no session in `app/page.tsx`
+- [x] Only render chat interface after successful authentication
+- [x] Replace useState with useConversation hook
+- [x] Handle conversation loading states
+
+### 5. Update Publish Function ✅ DONE
+- [x] Modify `app/actions/publish.ts` to use conversation ID as app ID
+- [x] Update conversation with published_app_id in database
+- [x] Link conversation to KV storage
+
+### 6. Update Deploy Dialog ✅ DONE
+- [x] Pass conversationId to publish function
+- [x] Show "Update App" vs "Create Share Link" based on published_app_id
+- [x] Handle re-publish detection
+
+### 7. Clear Chat = New Conversation ✅ DONE
+- [x] Create new conversation when clearing chat
+- [x] Update navbar to handle conversation creation
+
+## ✅ IMPLEMENTATION COMPLETE!
+
+## Next: Update Main Page
+
+Let's replace the existing state management with our conversation hook and require authentication.
+
+## Files to Create/Modify
+=========================
+- `lib/types/conversation.ts` - Conversation type only
+- `lib/hooks/useConversation.ts` - Conversation hook (no messages)
+- `app/page.tsx` - Require auth + add conversation hook
+- `app/actions/publish.ts` - Use conversation ID as app ID
+- `components/deploy-dialog.tsx` - Pass conversation ID and detect re-publish
+- `components/navbar.tsx` - Handle conversation clearing/creation
+
+## Test Cases
+============
+- [ ] Users must log in to access the app at all
+- [ ] New conversation auto-created on first login
+- [ ] Create app → get URL `lemonfarm.com/app/abc123` (conversation ID)
+- [ ] Edit and re-publish → same URL with new content
+- [ ] Clear chat → new conversation, new app URL when publishing
+- [ ] Messages work exactly as before (React state)
+
+## Estimated Time: 1-2 hours (minimal changes!)
+
+## Benefits
+- **Minimal changes** - messages stay exactly as they are
+- **Solves core problem** - stable app URLs
+- **Simple database** - just one conversations table
+- **Fast implementation** - focus on what matters 

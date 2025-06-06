@@ -60,14 +60,14 @@ export function Chat({
               className="py-2 pl-2 w-full md:w-max flex items-center border rounded-xl select-none hover:bg-white dark:hover:bg-white/5 hover:cursor-pointer"
             >
               <div className="rounded-[0.5rem] w-10 h-10 bg-black/5 dark:bg-white/5 self-stretch flex items-center justify-center">
-                <Terminal strokeWidth={2} className="text-[#FF8800]" />
+                <Terminal strokeWidth={2} className="text-[#FFFF00]" />
               </div>
               <div className="pl-2 pr-4 flex flex-col">
                 <span className="font-bold font-sans text-sm text-primary">
                   {message.object.title}
                 </span>
                 <span className="font-sans text-sm text-muted-foreground">
-                  Click to see fragment
+                  Click to view app
                 </span>
               </div>
             </div>

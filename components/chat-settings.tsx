@@ -7,14 +7,8 @@ import {
 } from './ui/dropdown-menu'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from './ui/tooltip'
-import { LLMModelConfig } from '@/lib/models'
 import { Settings2 } from 'lucide-react'
+import { LLMModelConfig } from '@/lib/models'
 
 export function ChatSettings({
   apiKeyConfigurable,
@@ -29,18 +23,11 @@ export function ChatSettings({
 }) {
   return (
     <DropdownMenu>
-      <TooltipProvider>
-        <Tooltip delayDuration={0}>
-          <TooltipTrigger asChild>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-muted-foreground h-6 w-6 rounded-sm">
-                <Settings2 className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-          </TooltipTrigger>
-          <TooltipContent>LLM settings</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="text-muted-foreground h-6 w-6 rounded-sm">
+          <Settings2 className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         {apiKeyConfigurable && (
           <>

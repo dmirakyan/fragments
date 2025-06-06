@@ -18,6 +18,11 @@ import { Dispatch, SetStateAction } from 'react'
 export function Preview({
   teamID,
   accessToken,
+  conversationId,
+  userId,
+  hasPublishedApp,
+  publishedUrl,
+  lastPublishedAt,
   selectedTab,
   onSelectedTabChange,
   isChatLoading,
@@ -28,6 +33,11 @@ export function Preview({
 }: {
   teamID: string | undefined
   accessToken: string | undefined
+  conversationId?: string
+  userId?: string
+  hasPublishedApp?: boolean
+  publishedUrl?: string
+  lastPublishedAt?: string
   selectedTab: 'code' | 'fragment'
   onSelectedTabChange: Dispatch<SetStateAction<'code' | 'fragment'>>
   isChatLoading: boolean
@@ -96,14 +106,20 @@ export function Preview({
               </TabsTrigger>
             </TabsList>
           </div>
-          {result && (
+          {result && conversationId && userId && (
             <div className="flex items-center justify-end gap-2">
               {isLinkAvailable && (
                 <DeployDialog
                   url={result.url!}
                   sbxId={result.sbxId!}
+                  conversationId={conversationId}
+                  userId={userId}
                   teamID={teamID}
                   accessToken={accessToken}
+                  fragment={fragment}
+                  hasPublishedApp={hasPublishedApp || false}
+                  initialPublishedURL={publishedUrl}
+                  lastPublishedAt={lastPublishedAt}
                 />
               )}
             </div>

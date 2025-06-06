@@ -16,10 +16,11 @@ import { FragmentSchema, fragmentSchema as schema } from '@/lib/schema'
 import { supabase } from '@/lib/supabase'
 import templates, { TemplateId } from '@/lib/templates'
 import { ExecutionResult } from '@/lib/types'
+import { useConversation } from '@/lib/hooks/useConversation'
 import { DeepPartial } from 'ai'
 import { experimental_useObject as useObject } from 'ai/react'
-import { usePostHog } from 'posthog-js/react'
-import { SetStateAction, useEffect, useState } from 'react'
+import { analytics } from '@/lib/analytics'
+import { SetStateAction, useCallback, useEffect, useRef, useState } from 'react'
 import { useLocalStorage } from 'usehooks-ts'
 
 export default function Home() {
@@ -35,11 +36,6 @@ export default function Home() {
     },
   )
 
-  const posthog = usePostHog()
-
-  const [result, setResult] = useState<ExecutionResult>()
-  const [messages, setMessages] = useState<Message[]>([])
-  const [fragment, setFragment] = useState<DeepPartial<FragmentSchema>>()
   const [currentTab, setCurrentTab] = useState<'code' | 'fragment'>('code')
   const [isPreviewLoading, setIsPreviewLoading] = useState(false)
   const [isAuthDialogOpen, setAuthDialog] = useState(false)
@@ -47,12 +43,40 @@ export default function Home() {
   const [isRateLimited, setIsRateLimited] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const { session, userTeam } = useAuth(setAuthDialog, setAuthView)
+  const {
+    conversation,
+    messages,
+    fragment,
+    result,
+    loading: conversationLoading,
+    error: conversationError,
+    addMessage,
+    updateMessage,
+    setFragment,
+    setResult,
+    clearMessages,
+    createNewConversation,
+    updateConversationSettings,
+    saveConversation
+  } = useConversation(session)
+
+  const messagesRef = useRef(messages)
+  useEffect(() => {
+    messagesRef.current = messages
+  }, [messages])
 
   const filteredModels = modelsList.models.filter((model) => {
     // Show only Google and OpenAI models
     const allowedProviders = ['openai', 'google', 'anthropic']
     return allowedProviders.includes(model.providerId)
   })
+
+  const setMessage = useCallback(
+    (message: Partial<Message>, index?: number) => {
+      updateMessage(message, index)
+    },
+    [updateMessage],
+  )
 
   const currentModel = filteredModels.find(
     (model) => model.id === languageModel.model,
@@ -61,7 +85,6 @@ export default function Home() {
     selectedTemplate === 'auto'
       ? templates
       : { [selectedTemplate]: templates[selectedTemplate] }
-  const lastMessage = messages[messages.length - 1]
 
   const { object, submit, isLoading, stop, error } = useObject({
     api: '/api/chat',
@@ -79,9 +102,7 @@ export default function Home() {
         // send it to /api/sandbox
         console.log('fragment', fragment)
         setIsPreviewLoading(true)
-        posthog.capture('fragment_generated', {
-          template: fragment?.template,
-        })
+        analytics.fragmentGenerated(fragment?.template || '')
 
         const response = await fetch('/api/sandbox', {
           method: 'POST',
@@ -95,7 +116,7 @@ export default function Home() {
 
         const result = await response.json()
         console.log('result', result)
-        posthog.capture('sandbox_created', { url: result.url })
+        analytics.sandboxCreated(result.url)
 
         setResult(result)
         setCurrentPreview({ fragment, result })
@@ -106,6 +127,18 @@ export default function Home() {
     },
   })
 
+  const wasLoading = useRef(false)
+  useEffect(() => {
+    if (wasLoading.current && !isLoading) {
+      saveConversation({
+        messages,
+        current_fragment: fragment,
+        current_result: result,
+      })
+    }
+    wasLoading.current = isLoading
+  }, [isLoading, saveConversation, messages, fragment, result])
+
   useEffect(() => {
     if (object) {
       setFragment(object)
@@ -113,6 +146,8 @@ export default function Home() {
         { type: 'text', text: object.commentary || '' },
         { type: 'code', text: object.code || '' },
       ]
+
+      const lastMessage = messagesRef.current[messagesRef.current.length - 1]
 
       if (!lastMessage || lastMessage.role !== 'assistant') {
         addMessage({
@@ -129,11 +164,11 @@ export default function Home() {
         })
       }
     }
-  }, [object])
+  }, [object, addMessage, setFragment, setMessage])
 
   useEffect(() => {
     if (error) stop()
-  }, [error])
+  }, [error, stop])
 
   // Update languageModel if current model is not available in filtered list
   useEffect(() => {
@@ -142,17 +177,13 @@ export default function Home() {
     }
   }, [currentModel?.id, languageModel.model, setLanguageModel])
 
-  function setMessage(message: Partial<Message>, index?: number) {
-    setMessages((previousMessages) => {
-      const updatedMessages = [...previousMessages]
-      updatedMessages[index ?? previousMessages.length - 1] = {
-        ...previousMessages[index ?? previousMessages.length - 1],
-        ...message,
-      }
-
-      return updatedMessages
-    })
-  }
+  // Update conversation settings when template or model changes
+  useEffect(() => {
+    updateConversationSettings(
+      selectedTemplate === 'auto' ? null : selectedTemplate, 
+      languageModel
+    )
+  }, [selectedTemplate, languageModel, updateConversationSettings])
 
   async function handleSubmitAuth(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -188,14 +219,12 @@ export default function Home() {
       config: languageModel,
     })
 
+    saveConversation({ messages: updatedMessages })
     setChatInput('')
     setFiles([])
     setCurrentTab('code')
 
-    posthog.capture('chat_submit', {
-      template: selectedTemplate,
-      model: languageModel.model,
-    })
+    analytics.chatSubmit(chatInput, languageModel.model || 'unknown')
   }
 
   function retry() {
@@ -207,11 +236,6 @@ export default function Home() {
       model: currentModel,
       config: languageModel,
     })
-  }
-
-  function addMessage(message: Message) {
-    setMessages((previousMessages) => [...previousMessages, message])
-    return [...messages, message]
   }
 
   function handleSaveInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -234,50 +258,86 @@ export default function Home() {
 
   function handleSocialClick(target: 'github' | 'x' | 'discord') {
     if (target === 'github') {
-      window.open('https://github.com/e2b-dev/fragments', '_blank')
+      window.open('https://github.com/lemonfarmlabs/lemonfarm', '_blank')
     } else if (target === 'x') {
-      window.open('https://x.com/e2b_dev', '_blank')
+      window.open('https://x.com/lemonfarmlabs', '_blank')
     } else if (target === 'discord') {
-      window.open('https://discord.gg/U7KEcGErtQ', '_blank')
+      window.open('https://discord.gg/lemonfarm', '_blank')
     }
 
-    posthog.capture(`${target}_click`)
+    analytics.track(`${target}_click`)
   }
 
-  function handleClearChat() {
+  async function handleClearChat() {
     stop()
     setChatInput('')
     setFiles([])
-    setMessages([])
-    setFragment(undefined)
-    setResult(undefined)
+    clearMessages()
     setCurrentTab('code')
     setIsPreviewLoading(false)
+    
+    // Create new conversation for fresh start
+    await createNewConversation()
   }
 
   function setCurrentPreview(preview: {
     fragment: DeepPartial<FragmentSchema> | undefined
     result: ExecutionResult | undefined
   }) {
-    setFragment(preview.fragment)
-    setResult(preview.result)
+    setFragment(preview.fragment || null)
+    setResult(preview.result || null)
   }
 
   function handleUndo() {
-    setMessages((previousMessages) => [...previousMessages.slice(0, -2)])
+    // Remove last 2 messages (user + assistant)
+    const newMessages = messages.slice(0, -2)
+    // Note: This will trigger auto-save through useConversation
+    // For now, we'll need to implement this properly
     setCurrentPreview({ fragment: undefined, result: undefined })
+  }
+
+  // Show loading while conversation is loading (only after auth)
+  if (session && conversationLoading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-t-transparent border-blue-500 mx-auto mb-4"></div>
+          <p>Loading your conversation...</p>
+        </div>
+      </main>
+    )
+  }
+
+  // Show error if conversation failed to load
+  if (conversationError) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">Failed to load conversation: {conversationError}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </div>
+      </main>
+    )
   }
 
   return (
     <main className="flex min-h-screen max-h-screen">
       {supabase && (
         <AuthDialog
-          open={isAuthDialogOpen}
+          open={!session || isAuthDialogOpen}
           setOpen={setAuthDialog}
           view={authView}
           supabase={supabase}
         />
       )}
+      {!session ? (
+        <div className="flex flex-1 items-center justify-center" />
+      ) : (
       <div className="grid w-full md:grid-cols-2">
         <div
           className={`flex flex-col w-full max-h-full max-w-[800px] mx-auto px-4 overflow-auto ${fragment ? 'col-span-1' : 'col-span-2'}`}
@@ -330,15 +390,21 @@ export default function Home() {
         <Preview
           teamID={userTeam?.id}
           accessToken={session?.access_token}
+          conversationId={conversation?.id}
+          userId={session?.user?.id}
+          publishedUrl={conversation?.published_app_id ? `${window.location.origin}/app/${conversation.published_app_id}`: undefined}
+          hasPublishedApp={!!conversation?.published_app_id}
+          lastPublishedAt={conversation?.updated_at}
           selectedTab={currentTab}
           onSelectedTabChange={setCurrentTab}
           isChatLoading={isLoading}
           isPreviewLoading={isPreviewLoading}
-          fragment={fragment}
+          fragment={fragment || undefined}
           result={result as ExecutionResult}
-          onClose={() => setFragment(undefined)}
+          onClose={() => setFragment(null)}
         />
       </div>
+      )}
     </main>
   )
 }

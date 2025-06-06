@@ -1,0 +1,6 @@
+## colors 
+#FFFF00 - Yellow primary
+#1A1B1D - Dark gray 
+#000000 - Black
+
+Favicon / logo -> use /public/logos

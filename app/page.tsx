@@ -123,21 +123,16 @@ export default function Home() {
         setMessage({ result })
         setCurrentTab('fragment')
         setIsPreviewLoading(false)
+        
+        // Save conversation with the updated fragment and result
+        saveConversation({
+          messages,
+          current_fragment: fragment,
+          current_result: result,
+        })
       }
     },
   })
-
-  const wasLoading = useRef(false)
-  useEffect(() => {
-    if (wasLoading.current && !isLoading) {
-      saveConversation({
-        messages,
-        current_fragment: fragment,
-        current_result: result,
-      })
-    }
-    wasLoading.current = isLoading
-  }, [isLoading, saveConversation, messages, fragment, result])
 
   useEffect(() => {
     if (object) {

@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useDebounceValue } from 'usehooks-ts'
 import { Message } from '@/lib/messages'
 import { FragmentSchema } from '@/lib/schema'
 import { ExecutionResult } from '@/lib/types'
@@ -13,7 +12,6 @@ import { Session } from '@supabase/supabase-js'
 export function useConversation(session: Session | null) {
   const [conversation, setConversation] = useState<Conversation | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
-  const [debouncedMessages] = useDebounceValue(messages, 500)
   const [fragment, setFragment] = useState<DeepPartial<FragmentSchema> | null>(null)
   const [result, setResult] = useState<ExecutionResult | null>(null)
   const [loading, setLoading] = useState(true)
@@ -24,6 +22,11 @@ export function useConversation(session: Session | null) {
     if (!conversation?.id || !session?.user?.id || !supabase) return
 
     try {
+      console.log('saveConversation called with', {
+        hasMessages: Array.isArray(updates.messages),
+        messageCount: Array.isArray(updates.messages) ? updates.messages.length : 'n/a',
+        keys: Object.keys(updates)
+      })
       const { error } = await supabase
         .from('conversations')
         .update({
@@ -34,6 +37,8 @@ export function useConversation(session: Session | null) {
         .eq('user_id', session.user.id)
 
       if (error) throw error
+
+      console.log('Conversation saved:', updates)
     } catch (err) {
       console.error('Failed to save conversation:', err)
       setError(err instanceof Error ? err.message : 'Failed to save conversation')
@@ -126,23 +131,23 @@ export function useConversation(session: Session | null) {
 
   // Helper functions for managing state
   const addMessage = useCallback((message: Message) => {
-    let newMessages: Message[]
+    let next: Message[] = []
     setMessages(prev => {
-      newMessages = [...prev, message]
-      return newMessages
+      next = [...prev, message]
+      return next
     })
-    return newMessages!
+    return next
   }, [])
 
   const updateMessage = useCallback((message: Partial<Message>, index?: number) => {
-    let updatedMessages: Message[]
+    let next: Message[] = []
     setMessages(prev => {
-      const updated = [...prev]
       const targetIndex = index ?? prev.length - 1
-      updated[targetIndex] = { ...prev[targetIndex], ...message }
-      updatedMessages = updated
-      return updated
+      next = [...prev]
+      next[targetIndex] = { ...prev[targetIndex], ...message }
+      return next
     })
+    return next
   }, [])
 
   const clearMessages = useCallback(() => {

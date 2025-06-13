@@ -29,59 +29,10 @@
       "multiModal": true
     },
     {
-      "id": "gpt-4.1-mini",
-      "provider": "OpenAI",
-      "providerId": "openai",
-      "name": "GPT-4.1 mini",
-      "multiModal": true
-    },
-    {
-      "id": "gpt-4.1-nano",
-      "provider": "OpenAI",
-      "providerId": "openai",
-      "name": "GPT-4.1 nano",
-      "multiModal": true
-    },
-    {
-      "id": "gpt-4.5-preview",
-      "provider": "OpenAI",
-      "providerId": "openai",
-      "name": "GPT-4.5 (preview)",
-      "multiModal": true
-    },
-    {
-      "id": "gpt-4o",
-      "provider": "OpenAI",
-      "providerId": "openai",
-      "name": "GPT-4o",
-      "multiModal": true
-    },
-    {
-      "id": "gpt-4o-mini",
-      "provider": "OpenAI",
-      "providerId": "openai",
-      "name": "GPT-4o mini",
-      "multiModal": true
-    },
-    {
       "id": "o1",
       "provider": "OpenAI",
       "providerId": "openai",
       "name": "o1",
-      "multiModal": true
-    },
-    {
-      "id": "o1-mini",
-      "provider": "OpenAI",
-      "providerId": "openai",
-      "name": "o1-mini",
-      "multiModal": false
-    },
-    {
-      "id": "gpt-4-turbo",
-      "provider": "OpenAI",
-      "providerId": "openai",
-      "name": "GPT-4 Turbo",
       "multiModal": true
     },
     {
@@ -96,27 +47,6 @@
       "provider": "Anthropic",
       "providerId": "anthropic",
       "name": "Claude Sonnet 4",
-      "multiModal": true
-    },
-    {
-      "id": "claude-3-7-sonnet-latest",
-      "provider": "Anthropic",
-      "providerId": "anthropic",
-      "name": "Claude Sonnet 3.7",
-      "multiModal": true
-    },
-    {
-      "id": "claude-3-5-sonnet-latest",
-      "provider": "Anthropic",
-      "providerId": "anthropic",
-      "name": "Claude Sonnet 3.5",
-      "multiModal": true
-    },
-    {
-      "id": "claude-3-5-haiku-latest",
-      "provider": "Anthropic",
-      "providerId": "anthropic",
-      "name": "Claude Haiku 3.5",
       "multiModal": true
     },
     {
@@ -148,13 +78,6 @@
       "multiModal": true
     },
     {
-      "id": "gemini-1.5-pro-002",
-      "provider": "Google Vertex AI",
-      "providerId": "vertex",
-      "name": "Gemini 1.5 Pro",
-      "multiModal": true
-    },
-    {
       "id": "gemini-1.5-flash-002",
       "provider": "Google Vertex AI",
       "providerId": "vertex",
@@ -169,10 +92,10 @@
       "multiModal": true
     },
     {
-      "id": "models/gemini-2.5-pro-preview-05-06",
+      "id": "models/gemini-2.5-pro-preview-06-05",
       "provider": "Google Generative AI",
       "providerId": "google",
-      "name": "Gemini 2.5 Pro Preview 05-06",
+      "name": "Gemini 2.5 Pro Preview 06-05",
       "multiModal": true
     },
     {

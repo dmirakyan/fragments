@@ -22,7 +22,6 @@ export function AuthDialog({
   view: ViewType
 }) {
   const redirectUrl = `https://${process.env.NEXT_PUBLIC_SITE_URL}`
-  console.log('Auth redirect URL:', redirectUrl, 'ENV VAR:', process.env.NEXT_PUBLIC_SITE_URL)
   
   return (
     <Dialog open={open} onOpenChange={setOpen}>

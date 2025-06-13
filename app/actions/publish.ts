@@ -33,7 +33,7 @@ export async function publish(
   })
 
   if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
-    const appId = conversationId
+    const appId = nanoid()
     
     if (supabase) {
       try {
@@ -62,7 +62,7 @@ export async function publish(
       createdAt: Date.now(),
       updatedAt: Date.now(),
       expiresAt: Date.now() + expiration
-    }, { px: expiration })
+    })
 
     let baseUrl: string
     

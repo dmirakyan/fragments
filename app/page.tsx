@@ -73,7 +73,7 @@ export default function Home() {
 
   const setMessage = useCallback(
     (message: Partial<Message>, index?: number) => {
-      updateMessage(message, index)
+      return updateMessage(message, index)
     },
     [updateMessage],
   )
@@ -120,13 +120,13 @@ export default function Home() {
 
         setResult(result)
         setCurrentPreview({ fragment, result })
-        setMessage({ result })
+
+        // Update last assistant message with result and persist
         setCurrentTab('fragment')
         setIsPreviewLoading(false)
-        
-        // Save conversation with the updated fragment and result
-        saveConversation({
-          messages,
+        // Persist entire turn (user + assistant) once streaming and sandbox are done
+        await saveConversation({
+          messages: messagesRef.current,
           current_fragment: fragment,
           current_result: result,
         })
@@ -145,18 +145,11 @@ export default function Home() {
       const lastMessage = messagesRef.current[messagesRef.current.length - 1]
 
       if (!lastMessage || lastMessage.role !== 'assistant') {
-        addMessage({
-          role: 'assistant',
-          content,
-          object,
-        })
+        addMessage({ role: 'assistant', content, object })
       }
 
       if (lastMessage && lastMessage.role === 'assistant') {
-        setMessage({
-          content,
-          object,
-        })
+        setMessage({ content, object })
       }
     }
   }, [object, addMessage, setFragment, setMessage])
@@ -214,7 +207,7 @@ export default function Home() {
       config: languageModel,
     })
 
-    saveConversation({ messages: updatedMessages })
+    // Removed premature saveConversation call; persistence will happen on AI finish
     setChatInput('')
     setFiles([])
     setCurrentTab('code')
@@ -268,6 +261,8 @@ export default function Home() {
     setChatInput('')
     setFiles([])
     clearMessages()
+    setFragment(null)
+    setResult(null)
     setCurrentTab('code')
     setIsPreviewLoading(false)
     
@@ -365,6 +360,7 @@ export default function Home() {
             isMultiModal={currentModel?.multiModal || false}
             files={files}
             handleFileChange={handleFileChange}
+            placeholder={messages.length > 0 ? 'Chat with your app' : 'Describe your app...'}
           >
             <ChatPicker
               templates={templates}
@@ -396,6 +392,11 @@ export default function Home() {
           isPreviewLoading={isPreviewLoading}
           fragment={fragment || undefined}
           result={result as ExecutionResult}
+          onSandboxRebuilt={async (newResult) => {
+            setResult(newResult)
+            const updatedMessages = setMessage({ result: newResult })
+            await saveConversation({ current_result: newResult, messages: updatedMessages })
+          }}
           onClose={() => setFragment(null)}
         />
       </div>

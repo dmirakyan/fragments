@@ -1,0 +1,11 @@
+Short-term
+[x] fix sandbox shit 
+[] solve the error where messages aren't getting accurately saved and retrieved
+[] add in smart contract placeholder
+[] clean up landing page + tie this to landing page
+[x] more reasonable sandbox names 
+
+Backlog 
+[] constrain what gets passed - we probably don't want to be passing 100% of the code each time.
+[] enable code streaming
+[] ena

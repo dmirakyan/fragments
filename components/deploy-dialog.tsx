@@ -14,6 +14,12 @@ import { DeepPartial } from 'ai'
 import { useEffect, useState } from 'react'
 import { Share } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 export function DeployDialog({
   url,
@@ -73,12 +79,18 @@ export function DeployDialog({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="default">
-          <Share className="w-4 h-4 mr-2" />
-          Deploy
-        </Button>
-      </DropdownMenuTrigger>
+      <TooltipProvider>
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-muted-foreground">
+                <Share className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipContent>Share</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <DropdownMenuContent className="p-4 w-80 flex flex-col gap-2">
         <div className="text-sm font-semibold">{dialogTitle}</div>
         <div className="text-sm text-muted-foreground">

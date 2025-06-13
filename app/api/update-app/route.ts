@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Set with 24 hour expiration
-    await kv.set(`fragment:${id}`, updatedData, { px: 24 * 60 * 60 * 1000 })
+    await kv.set(`fragment:${id}`, updatedData)
 
     return NextResponse.json({ success: true })
   } catch (error) {

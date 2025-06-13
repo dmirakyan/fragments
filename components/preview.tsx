@@ -12,7 +12,8 @@ import {
 import { FragmentSchema } from '@/lib/schema'
 import { ExecutionResult } from '@/lib/types'
 import { DeepPartial } from 'ai'
-import { ChevronsRight, LoaderCircle } from 'lucide-react'
+import { ChevronsRight, LoaderCircle, Gem } from 'lucide-react'
+import { toast } from '@/components/ui/use-toast'
 import { Dispatch, SetStateAction } from 'react'
 
 export function Preview({
@@ -29,6 +30,7 @@ export function Preview({
   isPreviewLoading,
   fragment,
   result,
+  onSandboxRebuilt,
   onClose,
 }: {
   teamID: string | undefined
@@ -44,6 +46,7 @@ export function Preview({
   isPreviewLoading: boolean
   fragment?: DeepPartial<FragmentSchema>
   result?: ExecutionResult
+  onSandboxRebuilt: (newResult: ExecutionResult) => void
   onClose: () => void
 }) {
   if (!fragment) {
@@ -122,6 +125,21 @@ export function Preview({
                   lastPublishedAt={lastPublishedAt}
                 />
               )}
+              <TooltipProvider>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground"
+                      onClick={() => toast({ title: 'Smart contract integration not yet supported' })}
+                    >
+                      <Gem className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Add smart contracts</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           )}
         </div>
@@ -140,7 +158,15 @@ export function Preview({
               )}
             </TabsContent>
             <TabsContent value="fragment" className="h-full">
-              {result && <FragmentPreview result={result as ExecutionResult} />}
+              {result && (
+                <FragmentPreview 
+                  result={result as ExecutionResult}
+                  fragment={fragment}
+                  teamID={teamID}
+                  accessToken={accessToken}
+                  onRebuild={onSandboxRebuilt}
+                />
+              )}
             </TabsContent>
           </div>
         )}

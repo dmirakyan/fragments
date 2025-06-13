@@ -29,11 +29,20 @@ export function getModelClient(model: LLMModel, config: LLMModelConfig) {
   const { id: modelNameString, providerId } = model
   const { apiKey, baseURL } = config
 
+  // Diagnostic log: helps verify if apiKey is making it through for Google models
+  if (process.env.NODE_ENV !== 'production' && providerId === 'google') {
+    // eslint-disable-next-line no-console
+    console.log('[models] Google provider selected. apiKey present:', Boolean(apiKey))
+  }
+
   const providerConfigs = {
     anthropic: () => createAnthropic({ apiKey, baseURL })(modelNameString),
     openai: () => createOpenAI({ apiKey, baseURL })(modelNameString),
     google: () =>
-      createGoogleGenerativeAI({ apiKey, baseURL })(modelNameString),
+      createGoogleGenerativeAI({
+        apiKey: apiKey || process.env.GOOGLE_AI_API_KEY,
+        baseURL,
+      })(modelNameString),
     mistral: () => createMistral({ apiKey, baseURL })(modelNameString),
     groq: () =>
       createOpenAI({

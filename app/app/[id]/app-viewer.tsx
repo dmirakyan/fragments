@@ -5,6 +5,7 @@ import { FragmentSchema } from '@/lib/schema'
 import { DeepPartial } from 'ai'
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
+import { isSandboxAlive, rebuildSandbox } from '@/lib/sandbox'
 
 interface AppViewerProps {
   id: string
@@ -84,9 +85,28 @@ export function AppViewer({ id, sandboxUrl, fragmentData, storedData }: AppViewe
   const [rebuildError, setRebuildError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Track app view with Plausible
     analytics.appView(id)
   }, [id])
+
+  // Lightweight check: ping the sandbox. If it's gone, trigger rebuild.
+  useEffect(() => {
+    if (isRebuilding || !storedData || !fragmentData) return
+
+    let cancelled = false
+
+    async function ping() {
+      const alive = await isSandboxAlive(currentUrl)
+      if (!cancelled && !alive) {
+        handleIframeError()
+      }
+    }
+
+    ping()
+
+    return () => {
+      cancelled = true
+    }
+  }, [currentUrl])
 
   // Auto-rebuild functionality when iframe fails to load
   const handleIframeError = async () => {
@@ -97,21 +117,11 @@ export function AppViewer({ id, sandboxUrl, fragmentData, storedData }: AppViewe
     
     try {
       // Rebuild the sandbox using the stored fragment data
-      const response = await fetch('/api/sandbox', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fragment: fragmentData,
-          teamID: storedData.teamID,
-          accessToken: storedData.accessToken,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to rebuild sandbox')
-      }
-
-      const result = await response.json()
+      const result = await rebuildSandbox(
+        fragmentData,
+        storedData.teamID,
+        storedData.accessToken,
+      )
       
       // Update KV with new sandbox URL
       await fetch('/api/update-app', {

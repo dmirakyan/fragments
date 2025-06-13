@@ -23,11 +23,12 @@ interface FragmentWebProps {
 
 export function FragmentWeb({ result, fragment, teamID, accessToken, onRebuild }: FragmentWebProps) {
   const [iframeKey, setIframeKey] = useState(0)
-  const [currentUrl, setCurrentUrl] = useState(result.url)
-  if (!result) return null
+  const [currentUrl, setCurrentUrl] = useState(result ? result.url : '')
 
   // Detect expired sandbox once on mount / when the URL changes
   useEffect(() => {
+    if (!result) return;
+
     let cancelled = false
 
     async function checkSandbox() {
@@ -56,17 +57,22 @@ export function FragmentWeb({ result, fragment, teamID, accessToken, onRebuild }
     return () => {
       cancelled = true
     }
-  }, [result.url, fragment, teamID, accessToken, onRebuild])
+  }, [result?.url, fragment, teamID, accessToken, onRebuild])
 
   // If parent provides a brand-new sandbox URL (e.g. after new code was
   // executed) make sure the iframe updates.
   useEffect(() => {
+    if (!result) return;
     setCurrentUrl(result.url)
     setIframeKey((k) => k + 1)
-  }, [result.url])
+  }, [result?.url])
 
   function refreshIframe() {
     setIframeKey((prevKey) => prevKey + 1)
+  }
+
+  if (!result) {
+    return null
   }
 
   return (
